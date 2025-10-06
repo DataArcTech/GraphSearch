@@ -39,13 +39,13 @@ pip install -e .
 Build Graph KB:
 
 ```
-python build_graph.py -d musique -m graphsearch -g lightrag
+python build_graph.py -d musique -g lightrag
 ```
 
 Inference:
 
 ```
-python infer.py -d musique -g lightrag
+python infer.py -d musique -m graphsearch -g lightrag
 ```
 
 ---
