@@ -15,10 +15,38 @@
 
 ## 🚀 Environment Setup
 
+We recommend that building an individual environment for each GraphRAG method, for example:
+
+```
+conda create -n lightrag python=3.11
+cd lightrag
+pip install lightrag-hku
+```
+
+```
+conda create -n hypergraphrag python=3.11
+conda activate hypergraphrag
+git clone git@github.com:LHRLAB/HyperGraphRAG.git
+cd HyperGraphRAG
+pip install -r requirements.txt
+pip install -e .
+```
 
 ---
 
-## 🔍 Inference
+## 🔍 Graph Construction and Inference
+
+Build Graph KB:
+
+```
+python build_graph.py -d musique -m graphsearch -g lightrag
+```
+
+Inference:
+
+```
+python infer.py -d musique -g lightrag
+```
 
 ---
 
