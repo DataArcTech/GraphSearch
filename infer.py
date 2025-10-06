@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="DeepGraphRAG CLI")
     parser.add_argument("-d", "--dataset", default="musique", choices=["hotpotqa", "musique", "2wikimultihopqa", "agriculture", "hypertension", "legal"], help="Dataset to use.")
-    parser.add_argument("-a", "--method", default="graphsearch", choices=["graphsearch", "grag", "vanillallm", "naiverag"], help="Reasoning method.")
+    parser.add_argument("-m", "--method", default="graphsearch", choices=["graphsearch", "grag", "vanillallm", "naiverag"], help="Reasoning method.")
     parser.add_argument("-g", "--graphrag", default="lightrag", choices=["lightrag", "minirag", "nano", "pathrag", "hipporag", "hypergraphrag"], help="GraphRAG to use.")
     parser.add_argument("-k", "--top_k", default="30", type=int, help="top retrieved items.")
     args = parser.parse_args()
