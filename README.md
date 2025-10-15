@@ -34,6 +34,51 @@ pip install -e .
 
 ---
 
+## 📁 Folders and Files
+
+```
+
+├── assets/
+├── datasets/
+│   ├── contexts/
+│   │   ├── 2wikimultihopqa.txt
+│   │   ├── agriculture.txt
+│   │   ├── hotpotqa.txt
+│   │   ├── hypertension.txt
+│   │   ├── legal.txt
+│   │   └── musique.txt
+│   └── questions/
+│       ├── 2wikimultihopqa.json
+│       ├── agriculture.json
+│       ├── hotpotqa.json
+│       ├── hypertension.json
+│       ├── legal.json
+│       └── musique.json
+├── deepsearch/
+│   ├── components.py
+│   └── prompts.py
+├── grag_initializers/
+│   ├── __init__.py
+│   ├── hypergraphrag.py
+│   ├── lightrag.py
+│   ├── minirag.py
+│   └── pathrag.py
+├── graphkb/
+│   └── lightrag/
+│       ├── 2wikimultihopqa/
+│       ├── hotpotqa/
+│       └── musique/
+├── README.md
+├── __init__.py
+├── build_graph.py
+├── config.py
+├── graphrags.py
+├── infer.py
+└── utils.py
+
+```
+
+
 ## 🔍 Graph Construction and Inference
 
 Build Graph KB:
