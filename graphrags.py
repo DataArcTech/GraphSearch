@@ -2,8 +2,8 @@ import os
 import re
 import logging
 
-from deepsearch.components import question_decomposition_deep, question_decomposition_deep_kg, answer_generation, query_completer, kg_query_completer, text_summary, kg_summary, answer_generation_deep, evidence_verification
-from utils import context_filter, format_history_context, extract_words_str, openai_complete, vdb_retrieve
+from deepsearch.components import question_decomposition_deep, question_decomposition_deep_kg, answer_generation, query_completer, kg_query_completer, text_summary, kg_summary, answer_generation_deep, evidence_verification, query_expansion
+from utils import context_filter, format_history_context, extract_words_str, openai_complete, vdb_retrieve, normalize, parse_expanded_queries
 from config import EMBED_MODEL_NAME, GRAG_MODE
 
 def initialize_rag(grag_name:str, dataset:str):
@@ -106,6 +106,27 @@ async def graph_search_reasoning(question, grag, grag_mode, QueryParam, top_k):
     text_final_answer = await answer_generation_deep(question, text_query_history_str)
     logging.info(f"Logic Drafting: {text_final_answer}")
 
+    # Self-Reflection, Optional
+    # Evidence verification
+    text_verification_result = await evidence_verification(question, text_query_history_str, text_final_answer)
+    logging.info(f"Evidence Verification: {text_verification_result}")
+    
+    # Query Expansion
+    if "yes" in normalize(text_verification_result):
+        query_expansion_result = await query_expansion(question, text_query_history_str, text_final_answer, text_verification_result)
+        expanded_queries = parse_expanded_queries(query_expansion_result)
+    
+        for expanded_query in expanded_queries:
+            expanded_query_context = await grag.aquery(expanded_query, QueryParam(mode=grag_mode, only_need_context=True, top_k=top_k))
+            logging.info(f"Expanded Query Context: {expanded_query_context}")
+            
+            expanded_query_context_summary = await text_summary(expanded_query, expanded_query_context)
+            logging.info(f"Expanded Query Context Summary: {expanded_query_context_summary}")
+            
+            text_query_history.append((expanded_query, expanded_query_context_summary, ""))
+            
+        text_query_history_str = format_history_context(text_query_history)
+        
     kg_query_history = []
     for i, sub_kg_query in enumerate(sub_kg_queries):
         kg_query_history_str = format_history_context(kg_query_history)
@@ -133,8 +154,26 @@ async def graph_search_reasoning(question, grag, grag_mode, QueryParam, top_k):
     kg_final_answer = await answer_generation_deep(question, kg_query_history_str)
     logging.info(f"KG Logic Drafting: {kg_final_answer}")
 
+    # Self-Reflection, Optional
+    # Evidence verification
+    kg_verification_result = await evidence_verification(question, kg_query_history_str, kg_final_answer)
+    logging.info(f"KG Evidence Verification: {kg_verification_result}")
+    # Query Expansion
+    if "yes" in normalize(kg_verification_result):
+        query_expansion_result = await query_expansion(question, kg_query_history_str, kg_final_answer, kg_verification_result)
+        expanded_queries = parse_expanded_queries(query_expansion_result)
+    
+        for expanded_query in expanded_queries:
+            expanded_query_context = await grag.aquery(expanded_query, QueryParam(mode=grag_mode, only_need_context=True, top_k=top_k))
+            logging.info(f"Expanded KG Query Context: {expanded_query_context}")
+            
+            expanded_query_context_summary = await kg_summary(expanded_query, expanded_query_context)
+            logging.info(f"Expanded KG Query Context Summary: {expanded_query_context_summary}")
+            
+            kg_query_history.append((expanded_query, expanded_query_context_summary, ""))
+            
+        kg_query_history_str = format_history_context(kg_query_history)
+
     combined_query_history_str = "Background information:\n" + grag_context_text_summary + "\n" + grag_context_kg_summary + "\n\n" + text_query_history_str + "\n\n" + kg_query_history_str
-    initial_answer = await answer_generation_deep(question, combined_query_history_str)
-    logging.info(f"Initial Answer: {initial_answer}")
-    
-    
+    final_answer = await answer_generation_deep(question, combined_query_history_str)
+    logging.info(f"Final Answer: {final_answer}")

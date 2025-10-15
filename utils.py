@@ -248,6 +248,65 @@ def truncate_str_by_token_size(
     truncated = encoded[:max_token_size]
     return tokenizer.decode(truncated, skip_special_tokens=True)
 
+def normalize(text: str) -> str:
+    import string
+    """
+    Normalize a given string by applying the following transformations:
+    1. Convert the string to lowercase.
+    2. Remove punctuation characters.
+    3. Remove the articles "a", "an", and "the".
+    4. Normalize whitespace by collapsing multiple spaces into one.
+
+    Args:
+        text (str): The input string to be normalized.
+
+    Returns:
+        str: The normalized string.
+    """
+    def remove_articles(text):
+        return re.sub(r"\b(a|an|the)\b", " ", text)
+
+    def white_space_fix(text):
+        return " ".join(text.split())
+
+    def remove_punc(text):
+        exclude = set(string.punctuation)
+        return "".join(ch for ch in text if ch not in exclude)
+
+    def lower(text):
+        return text.lower()
+    
+    return white_space_fix(remove_articles(remove_punc(lower(text)))).split()
+
+def parse_expanded_queries(query_expansion_result: str):
+    import ast
+    """
+    Try to extract and parse a Python-style list of strings from
+    the model output, even if surrounded by extra text.
+    """
+    text = query_expansion_result.strip()
+
+    # Step 1️⃣: 尝试直接安全解析
+    try:
+        parsed = ast.literal_eval(text)
+        if isinstance(parsed, list) and all(isinstance(x, str) for x in parsed):
+            return parsed
+    except Exception:
+        pass
+
+    # Step 2️⃣: 用正则在文本中提取形如 ["...", "..."] 的部分
+    match = re.search(r'\[[\s\S]*?\]', text)
+    if match:
+        list_str = match.group(0)
+        try:
+            parsed = ast.literal_eval(list_str)
+            if isinstance(parsed, list) and all(isinstance(x, str) for x in parsed):
+                return parsed
+        except Exception:
+            pass
+
+    # Step 3️⃣: 如果都失败，就退化为单元素列表
+    return [text]
 def always_get_an_event_loop() -> asyncio.AbstractEventLoop:
     """
     Ensure that there is always an event loop available.

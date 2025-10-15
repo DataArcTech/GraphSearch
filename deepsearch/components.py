@@ -103,17 +103,6 @@ async def answer_generation_deep(query, context_data):
     except:
         return ""
 
-async def answer_generation_wide(query, context_data):
-    try:
-        answer_prompt = PROMPTS["answer_generation_wide"].format(
-            query=query,
-            context_data=context_data
-        )
-        final_answer = await openai_complete(prompt=answer_prompt)
-        return final_answer.strip()
-    except:
-        return ""
-
 async def evidence_verification(query, context_data, model_response):
     try:
         verify_prompt = PROMPTS["evidence_verification"].format(
